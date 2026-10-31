@@ -1,4 +1,5 @@
 import HeroSection from "@/components/shared/HeroSection";
+import HowItWorks from "@/components/shared/HowItWorks";
 import NewArrivals from "@/components/shared/NewArrivals";
 
 export default function Home() {
@@ -6,6 +7,7 @@ export default function Home() {
     <div>
       <HeroSection></HeroSection>
       <NewArrivals></NewArrivals>
+      <HowItWorks></HowItWorks>
     </div>
   );
 }
