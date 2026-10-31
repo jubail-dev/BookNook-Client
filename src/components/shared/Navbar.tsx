@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 
-const Navbar = () => {
+const NavbarContent = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -29,15 +30,21 @@ const Navbar = () => {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    return pathname === href || (pathname.startsWith(`${href}/`) && href !== "/books");
+
+    return (
+      pathname === href ||
+      (pathname.startsWith(`${href}/`) && href !== "/books")
+    );
   };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-rose-200/40 bg-gradient-to-r from-[#FFF6F7] via-white to-[#FFF6F7]/90 backdrop-blur-md shadow-lg transition-all duration-300">
+
       {/* Background Accent Glow */}
       <div className="absolute inset-x-0 -top-10 -z-10 mx-auto h-24 w-3/4 rounded-full bg-amber-500/10 blur-3xl" />
 
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-3 sm:px-8 lg:px-12">
+
         {/* Logo */}
         <Link href="/" className="group flex shrink-0 items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 shadow-lg shadow-amber-500/25 transition-transform duration-300 group-hover:scale-105">
@@ -45,7 +52,10 @@ const Navbar = () => {
           </div>
 
           <span className="text-2xl font-extrabold tracking-tight text-zinc-900">
-            Book<span className="bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent">Nook</span>
+            Book
+            <span className="bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent">
+              Nook
+            </span>
           </span>
         </Link>
 
@@ -99,6 +109,7 @@ const Navbar = () => {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-300 bg-white/80 text-zinc-700 transition hover:border-amber-400 hover:text-amber-600 lg:hidden"
         >
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -107,7 +118,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-rose-200/50 bg-[#FFF6F7]/95 backdrop-blur-xl px-5 py-5 lg:hidden">
+        <div className="border-t border-rose-200/50 bg-[#FFF6F7]/95 px-5 py-5 backdrop-blur-xl lg:hidden">
           <div className="flex flex-col gap-2">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -130,6 +141,7 @@ const Navbar = () => {
               );
             })}
 
+            {/* Mobile Authentication */}
             <div className="mt-3 grid grid-cols-2 gap-3 border-t border-zinc-300 pt-4">
               <Link
                 href="/login"
@@ -153,6 +165,18 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+  );
+};
+
+const Navbar = () => {
+  return (
+    <Suspense
+      fallback={
+        <nav className="sticky top-0 z-50 h-[68px] w-full border-b border-rose-200/40 bg-white/95 shadow-sm" />
+      }
+    >
+      <NavbarContent />
+    </Suspense>
   );
 };
 

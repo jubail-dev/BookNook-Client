@@ -75,7 +75,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             </p>
           </div>
 
-          <Link href={"/books"}>
+          <Link href={`books/${book._id}`}>
             <button
             type="button"
             aria-label={`View details for ${book.title}`}
