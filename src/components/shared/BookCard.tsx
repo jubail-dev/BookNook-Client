@@ -2,6 +2,7 @@
 import React from "react";
 import { ArrowUpRight } from "lucide-react";
 import { BookItem } from "@/types/book.type";
+import Link from "next/link";
 
 interface BookCardProps {
   book: BookItem;
@@ -74,13 +75,15 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             </p>
           </div>
 
-          <button
+          <Link href={"/books"}>
+            <button
             type="button"
             aria-label={`View details for ${book.title}`}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition-all duration-300 hover:bg-rose-600 group-hover:rotate-45"
           >
             <ArrowUpRight size={18} />
           </button>
+          </Link>
         </div>
       </div>
     </article>

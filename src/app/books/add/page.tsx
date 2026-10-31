@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -17,6 +18,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const BookAddPage = () => {
   const router = useRouter();
@@ -67,6 +69,10 @@ const BookAddPage = () => {
     if (isLoading) return;
 
     setIsLoading(true);
+
+    const toastId = toast.loading("Adding your book...", {
+      description: "Please wait while we save your book.",
+    });
 
     const formData = new FormData(e.currentTarget);
 
@@ -125,16 +131,24 @@ const BookAddPage = () => {
 
       console.log("Book added successfully:", result);
 
-      // Step 4: Redirect to My Books
+      // Step 4: Show success toast
+      toast.success("Book added successfully!", {
+        id: toastId,
+        description: "Your new book is now available in the library.",
+      });
+
+      // Step 5: Redirect to My Books
       router.push("/my-books");
     } catch (error) {
       console.error("Error adding book:", error);
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong!"
-      );
+      toast.error("Failed to add book!", {
+        id: toastId,
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong!",
+      });
 
       setIsLoading(false);
     }
@@ -485,7 +499,7 @@ const BookAddPage = () => {
             <div className="mt-7 flex flex-col-reverse items-center justify-between gap-4 border-t border-[#EDF0EA] pt-5 sm:flex-row">
 
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={17} className="text-[#719477]" />
+                <CheckCircle2 size={17} className="text-[#719477}" />
 
                 <span className="text-[12px] text-[#8A9689]">
                   Your book details are ready to be added.
