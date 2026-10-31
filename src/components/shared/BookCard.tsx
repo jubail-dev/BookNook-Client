@@ -1,20 +1,10 @@
 
 import React from "react";
-import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
-
-export interface Book {
-  id: number;
-  title: string;
-  author: string;
-  category: string;
-  coverImage: string;
-  description?: string;
-  userName: string;
-  email: string;
-}
+import { ArrowUpRight } from "lucide-react";
+import { BookItem } from "@/types/book.type";
 
 interface BookCardProps {
-  book: Book;
+  book: BookItem;
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
@@ -25,14 +15,14 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
       <div className="relative overflow-hidden bg-[#f7f3f1] p-4 pb-3">
         <div className="relative mx-auto aspect-[3/3.8] w-full max-w-[230px] overflow-hidden rounded-xl shadow-[0_12px_25px_rgba(0,0,0,0.13)]">
           <img
-            src={book.coverImage}
+            src={book.image}
             alt={book.title}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60" />
-          
+
           <span className="absolute left-3 top-3 rounded-full border border-white/40 bg-white/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-rose-600 shadow-sm backdrop-blur-md">
             {book.category}
           </span>
@@ -98,4 +88,3 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
 };
 
 export default BookCard;
-export { BookCard };
