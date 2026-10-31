@@ -1,7 +1,7 @@
-
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   UserRound,
@@ -19,6 +19,10 @@ import {
 } from "lucide-react";
 
 const BookAddPage = () => {
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const [bookFormData, setFormData] = useState({
     title: "",
     author: "",
@@ -58,59 +62,83 @@ const BookAddPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const formData = new FormData(e.currentTarget)
+    if (isLoading) return;
 
-  try {
-    
+    setIsLoading(true);
 
-    let imageUrl = "";
+    const formData = new FormData(e.currentTarget);
 
-    if (bookFormData.image) {
-      const imageData = new FormData();
+    try {
+      let imageUrl = "";
 
-      imageData.append("image", bookFormData.image);
+      // Step 1: Upload book cover
+      if (bookFormData.image) {
+        const imageData = new FormData();
 
-      const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/upload`, {
-        method: "POST",
-        body: imageData,
-      });
+        imageData.append("image", bookFormData.image);
 
-      const uploadResult = await uploadResponse.json();
+        const uploadResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/upload`,
+          {
+            method: "POST",
+            body: imageData,
+          }
+        );
 
-      if (!uploadResponse.ok) {
-        throw new Error(uploadResult.message || "Image upload failed");
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(
+            uploadResult.message || "Image upload failed"
+          );
+        }
+
+        imageUrl = uploadResult.imageUrl;
       }
 
-      imageUrl = uploadResult.imageUrl;
+      // Step 2: Prepare book data
+      const bookData = Object.fromEntries(formData.entries());
+
+      bookData.image = imageUrl;
+
+      // Step 3: Save book to MongoDB
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Book creation failed"
+        );
+      }
+
+      console.log("Book added successfully:", result);
+
+      // Step 4: Redirect to My Books
+      router.push("/my-books");
+    } catch (error) {
+      console.error("Error adding book:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong!"
+      );
+
+      setIsLoading(false);
     }
-
-    // Step 2: Prepare book data
-    const bookData = Object.fromEntries(formData.entries())
-
-    bookData.image = imageUrl
-
-    // Step 3: Save book data to MongoDB
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(bookData),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || "Book creation failed");
-    }
-
-    console.log("Book added successfully:", result);
-  } catch (error) {
-    console.error("Error adding book:", error);
-  }
-};
+  };
 
   const inputClass =
     "w-full h-[46px] rounded-lg border border-[#E7EBE5] bg-[#FAFBF9] px-4 text-[14px] font-medium text-[#263B2E] outline-none transition-all duration-200 placeholder:font-normal placeholder:text-[#A6AEA5] hover:border-[#B9CBB8] focus:border-[#527B59] focus:bg-white focus:ring-[3px] focus:ring-[#527B59]/10";
@@ -120,13 +148,10 @@ const BookAddPage = () => {
 
   return (
     <main className="min-h-screen bg-[#F6F8F4] px-4 py-5 sm:px-7 lg:px-10 lg:py-7">
-
-
       <div className="book-page-enter mx-auto max-w-[1050px]">
 
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-
           <div>
             <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[1.5px] text-[#829184]">
               <Library size={14} />
@@ -150,7 +175,6 @@ const BookAddPage = () => {
               Every book has a story
             </span>
           </div>
-
         </div>
 
         {/* Main Form */}
@@ -163,7 +187,6 @@ const BookAddPage = () => {
 
             {/* Form Heading */}
             <div className="mb-6 flex items-center justify-between border-b border-[#EEF1EB] pb-5">
-
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EDF3EA] text-[#345C3C]">
                   <BookOpen size={21} />
@@ -182,7 +205,6 @@ const BookAddPage = () => {
               <span className="rounded-md bg-[#F0F5ED] px-3 py-2 text-[11px] font-bold tracking-wider text-[#527858]">
                 NEW ENTRY
               </span>
-
             </div>
 
             {/* Main Grid */}
@@ -193,7 +215,6 @@ const BookAddPage = () => {
 
                 {/* Basic Details */}
                 <section>
-
                   <div className="mb-4 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#628568]" />
                     <h3 className="text-[13px] font-bold uppercase tracking-[1.1px] text-[#455B49]">
@@ -203,6 +224,7 @@ const BookAddPage = () => {
 
                   <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
 
+                    {/* Book Title */}
                     <div className="field-animate sm:col-span-2">
                       <label className={labelClass}>
                         Book title <span className="text-red-400">*</span>
@@ -226,6 +248,7 @@ const BookAddPage = () => {
                       </div>
                     </div>
 
+                    {/* Author */}
                     <div className="field-animate">
                       <label className={labelClass}>
                         Author name <span className="text-red-400">*</span>
@@ -249,6 +272,7 @@ const BookAddPage = () => {
                       </div>
                     </div>
 
+                    {/* Category */}
                     <div className="field-animate">
                       <label className={labelClass}>
                         Category <span className="text-red-400">*</span>
@@ -275,6 +299,7 @@ const BookAddPage = () => {
                       </div>
                     </div>
 
+                    {/* Total Copies */}
                     <div className="field-animate">
                       <label className={labelClass}>
                         Total copies <span className="text-red-400">*</span>
@@ -297,13 +322,11 @@ const BookAddPage = () => {
                         />
                       </div>
                     </div>
-
                   </div>
                 </section>
 
                 {/* Contributor Details */}
                 <section>
-
                   <div className="mb-4 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#628568]" />
                     <h3 className="text-[13px] font-bold uppercase tracking-[1.1px] text-[#455B49]">
@@ -313,6 +336,7 @@ const BookAddPage = () => {
 
                   <div className="grid gap-4 sm:grid-cols-2">
 
+                    {/* User Name */}
                     <div>
                       <label className={labelClass}>
                         Your name <span className="text-red-400">*</span>
@@ -336,6 +360,7 @@ const BookAddPage = () => {
                       </div>
                     </div>
 
+                    {/* User Email */}
                     <div>
                       <label className={labelClass}>
                         Email address <span className="text-red-400">*</span>
@@ -358,10 +383,8 @@ const BookAddPage = () => {
                         />
                       </div>
                     </div>
-
                   </div>
                 </section>
-
               </div>
 
               {/* Right Column */}
@@ -369,7 +392,6 @@ const BookAddPage = () => {
 
                 {/* Cover Upload */}
                 <section>
-
                   <div className="mb-4 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#628568]" />
                     <h3 className="text-[13px] font-bold uppercase tracking-[1.1px] text-[#455B49]">
@@ -434,12 +456,10 @@ const BookAddPage = () => {
                       Remove cover
                     </button>
                   )}
-
                 </section>
 
                 {/* Description */}
                 <section>
-
                   <label className={`${labelClass} flex items-center gap-2`}>
                     <AlignLeft size={15} />
                     Short description
@@ -457,11 +477,8 @@ const BookAddPage = () => {
                   <p className="mt-1.5 text-right text-[11px] text-[#A3ACA1]">
                     Make every story worth discovering.
                   </p>
-
                 </section>
-
               </div>
-
             </div>
 
             {/* Bottom Actions */}
@@ -475,21 +492,52 @@ const BookAddPage = () => {
                 </span>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="group flex w-full items-center justify-center gap-2.5 rounded-lg bg-[#294D36] px-7 py-3.5 text-[13px] font-bold tracking-wide text-white shadow-[0_4px_12px_rgba(41,77,54,0.13)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#203F2C] hover:shadow-[0_8px_18px_rgba(41,77,54,0.2)] active:translate-y-0 sm:w-auto"
+                disabled={isLoading}
+                className="group flex w-full items-center justify-center gap-2.5 rounded-lg bg-[#294D36] px-7 py-3.5 text-[13px] font-bold tracking-wide text-white shadow-[0_4px_12px_rgba(41,77,54,0.13)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#203F2C] hover:shadow-[0_8px_18px_rgba(41,77,54,0.2)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-75 disabled:hover:translate-y-0 sm:w-auto"
               >
-                <Plus size={17} />
-                Add book to library
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="h-[17px] w-[17px] animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
 
-                <ArrowUpRight
-                  size={16}
-                  className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                />
+                      <path
+                        className="opacity-90"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+
+                    Adding book...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={17} />
+
+                    Add book to library
+
+                    <ArrowUpRight
+                      size={16}
+                      className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
+                  </>
+                )}
               </button>
-
             </div>
-
           </form>
         </div>
 
@@ -503,7 +551,6 @@ const BookAddPage = () => {
             Made for readers, built around stories.
           </p>
         </div>
-
       </div>
     </main>
   );
