@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface BookDetailsClientProps {
   bookData: BookItem;
@@ -44,12 +45,38 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
     userEmail: "",
   });
 
-  const handleBorrow = () => {
-    console.log("Borrow Data:", {
-      ...borrowData,
+  const handleBorrow = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const bookingData = {
       bookId: bookData._id,
-      bookTitle: bookData.title,
-    });
+      userName: formData.get("userName") as string,
+      userEmail: formData.get("userEmail") as string,
+      borrowDate: new Date().toISOString(),
+      borrowDurationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days later
+    };
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/booking`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to borrow book");
+      }
+
+      const result = await response.json();
+      console.log("Borrow successful:", result);
+      toast.success("Book borrowed successfully!");
+    } catch (error) {
+      console.error("Error borrowing book:", error);
+      toast.error("Failed to borrow book.");
+    }
 
     setOpen(false);
   };
@@ -303,6 +330,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                   </DialogHeader>
 
                   {/* Borrow Form */}
+                  <form onSubmit={handleBorrow}>
                   <div className="space-y-5 py-4">
                     {/* Username */}
                     <div className="space-y-2">
@@ -315,6 +343,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
 
                       <Input
                         id="userName"
+                        name="userName"
                         placeholder="Enter your username"
                         value={borrowData.userName}
                         onChange={(e) =>
@@ -337,6 +366,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                       </Label>
 
                       <Input
+                        name="userEmail"
                         id="userEmail"
                         type="email"
                         placeholder="Enter your email address"
@@ -355,8 +385,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                   {/* Confirm Button */}
                   <DialogFooter>
                     <Button
-                      type="button"
-                      onClick={handleBorrow}
+                      type="submit"
                       disabled={
                         !borrowData.userName.trim() ||
                         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
@@ -369,6 +398,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                       Confirm Borrow
                     </Button>
                   </DialogFooter>
+                  </form>
                 </DialogContent>
               </Dialog>
 
