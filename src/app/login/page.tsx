@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 interface LoginFormData {
   email: string;
@@ -39,13 +42,21 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget)
+    const data = Object.fromEntries(formData.entries())
 
-    console.log("Login Data:", {
-      ...formData,
-      rememberMe,
-    });
+    const {data:resData, error} = await signIn.email({
+        email: data.email as string,
+        password: data.password as string,
+    })
+
+    if(resData?.user) {
+        toast.success("Login successful! Redirecting...");
+        redirect("/books");
+    }
+   
   };
 
   return (
@@ -410,7 +421,7 @@ const LoginPage = () => {
                 Don&apos;t have an account?{" "}
 
                 <Link
-                  href="/signup"
+                  href="/register"
                   className="font-bold text-[#c28a16] hover:text-[#a8740e]"
                 >
                   Create account

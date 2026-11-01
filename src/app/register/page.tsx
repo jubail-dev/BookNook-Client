@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { signUp } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 interface FormData {
   name: string;
@@ -43,9 +46,21 @@ const SignUpPage = () => {
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Registration Data:", formData);
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries())
+    const {data:resData, error} = await signUp.email({
+        name: data.name as string,
+        email: data.email as string,
+        password: data.password as string,
+    })
+    console.log("Sign up response:", resData, error);
+
+    if(resData?.user) {
+      toast.success("Successfully signed up! Please login.");
+      redirect("/login")
+    }
   };
 
   return (
