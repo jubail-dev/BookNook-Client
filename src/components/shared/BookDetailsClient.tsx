@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 interface BookDetailsClientProps {
   bookData: BookItem;
@@ -37,6 +38,8 @@ interface BookDetailsClientProps {
 
 const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
   const available = Number(bookData.totalCopies) > 0;
+
+  const {data:session,isPending} = useSession()
 
   const [open, setOpen] = useState(false);
 
@@ -345,7 +348,8 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                         id="userName"
                         name="userName"
                         placeholder="Enter your username"
-                        value={borrowData.userName}
+                        defaultValue={session?.user.name}
+                        readOnly
                         onChange={(e) =>
                           setBorrowData({
                             ...borrowData,
@@ -370,7 +374,8 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                         id="userEmail"
                         type="email"
                         placeholder="Enter your email address"
-                        value={borrowData.userEmail}
+                        defaultValue={session?.user?.email}
+                        readOnly
                         onChange={(e) =>
                           setBorrowData({
                             ...borrowData,
@@ -386,12 +391,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                   <DialogFooter>
                     <Button
                       type="submit"
-                      disabled={
-                        !borrowData.userName.trim() ||
-                        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                          borrowData.userEmail.trim()
-                        )
-                      }
+                      disabled = {Number(bookData.totalCopies) < 1}
                       className="w-full h-11 bg-[#234B38] hover:bg-[#315E46] text-white rounded-xl"
                     >
                       <BookOpen size={17} className="mr-2" />
