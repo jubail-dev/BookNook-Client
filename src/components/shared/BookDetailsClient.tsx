@@ -54,6 +54,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
 
     const bookingData = {
       bookId: bookData._id,
+      bookName: bookData.title,
       userName: formData.get("userName") as string,
       userEmail: formData.get("userEmail") as string,
       borrowDate: new Date().toISOString(),
