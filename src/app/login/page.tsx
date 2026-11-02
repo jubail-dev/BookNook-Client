@@ -54,7 +54,7 @@ const LoginPage = () => {
 
     if(resData?.user) {
         toast.success("Login successful! Redirecting...");
-        redirect("/books");
+        redirect("/");
     }
    
   };

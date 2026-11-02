@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 interface FormData {
   name: string;
@@ -30,6 +30,7 @@ interface FormData {
 }
 
 const SignUpPage = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
@@ -46,22 +47,27 @@ const SignUpPage = () => {
     });
   };
 
-  const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries())
-    const {data:resData, error} = await signUp.email({
-        name: data.name as string,
-        email: data.email as string,
-        password: data.password as string,
-    })
-    console.log("Sign up response:", resData, error);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    if(resData?.user) {
-      toast.success("Successfully signed up! Please login.");
-      redirect("/login")
-    }
-  };
+  const { data: resData, error } = await signUp.email({
+    name: formData.name,
+    email: formData.email,
+    password: formData.password,
+  });
+
+  if (error) {
+    toast.error(error.message || "Registration failed!");
+    return;
+  }
+
+  if (resData?.user) {
+    toast.success("Successfully registered! Please login.");
+
+    router.push("/login");
+    router.refresh();
+  }
+};
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f7f3] p-3 sm:p-5 lg:flex lg:min-h-screen lg:items-center lg:justify-center">

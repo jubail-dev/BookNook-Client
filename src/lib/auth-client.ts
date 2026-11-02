@@ -4,4 +4,4 @@ export const authClient = createAuthClient({
     baseURL: process.env.NEXT_PUBLIC_BASE_SERVER_URL || "http://localhost:5000",
 })
 
-export const { signIn, signUp, useSession } = createAuthClient()
+export const { signIn, signUp,signOut, useSession } = createAuthClient()
