@@ -19,9 +19,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 const BookAddPage = () => {
   const router = useRouter();
+
+  const {data:session, isPending} = useSession()
+
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -365,7 +369,8 @@ const BookAddPage = () => {
                         <input
                           type="text"
                           name="userName"
-                          value={bookFormData.userName}
+                          defaultValue={session?.user?.name}
+                          readOnly
                           onChange={handleChange}
                           placeholder="Your full name"
                           className={`${inputClass} pl-11`}
@@ -389,7 +394,8 @@ const BookAddPage = () => {
                         <input
                           type="email"
                           name="userEmail"
-                          value={bookFormData.userEmail}
+                          defaultValue={session?.user?.email}
+                          readOnly
                           onChange={handleChange}
                           placeholder="you@example.com"
                           className={`${inputClass} pl-11`}
