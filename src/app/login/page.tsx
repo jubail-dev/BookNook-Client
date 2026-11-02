@@ -59,6 +59,20 @@ const LoginPage = () => {
    
   };
 
+  const handleGoogleSignIn = async () =>{
+    const data = await signIn.social({
+      provider: "google"
+    })
+    console.log(data);
+  }
+
+  const handleGithubSignIn = async () =>{
+    const data = await signIn.social({
+      provider: "github"
+    })
+    console.log(data);
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f7f3] p-3 sm:p-5 lg:flex lg:items-center lg:justify-center">
 
@@ -234,6 +248,7 @@ const LoginPage = () => {
             <div className="grid grid-cols-2 gap-3">
 
               <Button
+                onClick={handleGoogleSignIn}
                 type="button"
                 variant="outline"
                 className="h-11 rounded-xl border-[#e9e5dc] text-sm font-semibold text-[#39352d] hover:bg-[#faf8f2]"
@@ -262,6 +277,7 @@ const LoginPage = () => {
               </Button>
 
               <Button
+                onClick={handleGithubSignIn}
                 type="button"
                 variant="outline"
                 className="h-11 rounded-xl border-[#e9e5dc] text-sm font-semibold text-[#39352d] hover:bg-[#faf8f2]"
