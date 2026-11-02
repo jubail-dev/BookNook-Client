@@ -21,6 +21,8 @@ import {
   MoveUpRight,
 } from "lucide-react";
 import { BookItem } from "@/types/book.type";
+import EditBooksDialog from "@/components/shared/EditBooksDialog";
+import DeleteBooksDialog from "@/components/shared/DeleteBookDialog";
 
 const containerVariants = {
   hidden: {},
@@ -55,7 +57,7 @@ useEffect(() => {
   const fetchMyBooks = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/my-book/${session.user.email}`
+        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/my-books/${session.user.email}`
       );
 
       if (!response.ok) {
@@ -418,25 +420,8 @@ const stats = [
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.08, y: -2 }}
-                          whileTap={{ scale: 0.92 }}
-                          type="button"
-                          aria-label={`Edit ${book.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e6eae2] bg-white text-[#56744e] transition-all hover:border-[#193c30] hover:bg-[#193c30] hover:text-white"
-                        >
-                          <Pencil size={15} />
-                        </motion.button>
-
-                        <motion.button
-                          whileHover={{ scale: 1.08, y: -2 }}
-                          whileTap={{ scale: 0.92 }}
-                          type="button"
-                          aria-label={`Delete ${book.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-white text-red-400 transition-all hover:border-red-500 hover:bg-red-500 hover:text-white"
-                        >
-                          <Trash2 size={15} />
-                        </motion.button>
+                        <EditBooksDialog filteredBooks={filteredBooks} book={book}></EditBooksDialog>
+                        <DeleteBooksDialog book={book}></DeleteBooksDialog>
                       </div>
                     </div>
                   </motion.div>
