@@ -31,58 +31,115 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 interface BookDetailsClientProps {
   bookData: BookItem;
 }
 
-const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
-  const available = Number(bookData.totalCopies) > 0;
+const BookDetailsClient = ({
+  bookData,
+}: BookDetailsClientProps) => {
+  const [totalCopies, setTotalCopies] = useState(
+    Number(bookData.totalCopies) || 0
+  );
 
-  const {data:session,isPending} = useSession()
-
+  const router = useRouter();
+  const [isBorrowing, setIsBorrowing] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const [borrowData, setBorrowData] = useState({
-    userName: "",
-    userEmail: "",
-  });
+  const { data: session, isPending } = useSession();
 
-  const handleBorrow = async(e: React.FormEvent<HTMLFormElement>) => {
+  const available = totalCopies > 0;
+
+  const handleBorrow = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+
+    if (isPending) {
+      toast.error("Please wait, loading your account...");
+      return;
+    }
+
+    if (!session?.user?.email) {
+      toast.error("Please login to borrow a book.");
+      return;
+    }
+
+    if (isBorrowing) return;
+
+    if (!available) {
+      toast.error("This book is currently unavailable.");
+      return;
+    }
+
+    setIsBorrowing(true);
 
     const bookingData = {
       bookId: bookData._id,
       bookName: bookData.title,
-      userName: formData.get("userName") as string,
-      userEmail: formData.get("userEmail") as string,
+      userName: session.user.name,
+      userEmail: session.user.email,
       borrowDate: new Date().toISOString(),
-      borrowDurationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days later
+      borrowDurationDate: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ).toISOString(),
     };
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/booking`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bookingData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to borrow book");
-      }
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/booking`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
 
       const result = await response.json();
-      console.log("Borrow successful:", result);
-      toast.success("Book borrowed successfully!");
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error(
+            "You have already borrowed this book."
+          );
+        }
+
+        if (response.status === 400) {
+          throw new Error(
+            result.message || "This book is currently unavailable."
+          );
+        }
+
+        throw new Error(
+          result.message || "Failed to borrow book."
+        );
+      }
+
+      // Update available copies after successful booking
+      setTotalCopies((prev) => Math.max(0, prev - 1));
+
+      toast.success(
+        result.message || "Book borrowed successfully!"
+      );
+      
+
+      setOpen(false);
+      router.push("/my-borrows");
     } catch (error) {
       console.error("Error borrowing book:", error);
-      toast.error("Failed to borrow book.");
-    }
 
-    setOpen(false);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to borrow book."
+      );
+    } finally {
+      setIsBorrowing(false);
+    }
   };
 
   return (
@@ -104,6 +161,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
           <div className="w-8 h-8 rounded-lg bg-[#234B38] flex items-center justify-center">
             <Library size={16} className="text-white" />
           </div>
+
           <span className="font-bold tracking-tight text-[#234B38]">
             Book<span className="text-[#A68B56]">Nest.</span>
           </span>
@@ -117,6 +175,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-12 lg:py-20">
         <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 lg:gap-20 items-center">
+
           {/* LEFT - Book Cover */}
           <motion.div
             initial={{ opacity: 0, x: -35 }}
@@ -125,11 +184,10 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
             className="relative"
           >
             <div className="relative bg-[#E9EDE7] rounded-[28px] p-7 sm:p-12 lg:p-10 overflow-hidden">
-              {/* Background Decoration */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/50 rounded-full blur-3xl" />
+
               <div className="absolute bottom-0 left-0 w-52 h-52 bg-[#C8D4C8]/40 rounded-full blur-3xl" />
 
-              {/* Cover */}
               <div className="relative z-10 max-w-[310px] mx-auto mt-8">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-white shadow-[0_25px_55px_rgba(25,44,34,0.22)] transition-transform duration-700 hover:-translate-y-2 hover:rotate-1">
                   <Image
@@ -142,16 +200,15 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                   />
                 </div>
 
-                {/* Shadow */}
                 <div className="h-5 mx-5 bg-[#192C22]/10 blur-xl rounded-full mt-5" />
               </div>
 
-              {/* Bottom Label */}
               <div className="relative z-10 mt-9 flex items-center justify-between border-t border-[#D5DDD3] pt-5">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-[#849084] font-semibold">
                     Our Collection
                   </p>
+
                   <p className="text-sm font-semibold text-[#234B38] mt-1">
                     Discover Your Next Story
                   </p>
@@ -163,7 +220,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
               </div>
             </div>
 
-            {/* Floating Availability Badge */}
+            {/* Availability Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -175,6 +232,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                   available ? "bg-emerald-500" : "bg-red-500"
                 }`}
               />
+
               <span className="text-xs font-semibold text-[#34483A]">
                 {available ? "Available" : "Unavailable"}
               </span>
@@ -222,19 +280,20 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                 <p className="text-xs text-[#96A097] font-medium uppercase tracking-wider">
                   Written by
                 </p>
+
                 <p className="text-base font-semibold text-[#304638] mt-1">
                   {bookData.author}
                 </p>
               </div>
             </div>
 
-            {/* Divider */}
             <div className="w-full h-px bg-[#E4E9E2] my-9" />
 
             {/* Description */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-[#A68B56] rounded-full" />
+
                 <h2 className="text-sm font-bold text-[#263D2F] uppercase tracking-[0.12em]">
                   About This Book
                 </h2>
@@ -250,13 +309,14 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
               <div className="bg-white border border-[#E9ECE7] rounded-2xl p-5 hover:border-[#C8D5C8] transition-colors">
                 <div className="flex items-center gap-2 text-[#89958A] mb-4">
                   <Library size={17} />
+
                   <span className="text-[11px] uppercase tracking-wider font-semibold">
                     Total Copies
                   </span>
                 </div>
 
                 <p className="text-3xl font-bold text-[#234B38]">
-                  {bookData.totalCopies}
+                  {totalCopies}
                 </p>
 
                 <p className="text-xs text-[#A0AAA0] mt-1">
@@ -267,6 +327,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
               <div className="bg-white border border-[#E9ECE7] rounded-2xl p-5 hover:border-[#C8D5C8] transition-colors">
                 <div className="flex items-center gap-2 text-[#89958A] mb-4">
                   <CheckCircle2 size={17} />
+
                   <span className="text-[11px] uppercase tracking-wider font-semibold">
                     Book Status
                   </span>
@@ -281,7 +342,9 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                 </p>
 
                 <p className="text-xs text-[#A0AAA0] mt-2">
-                  {available ? "Ready to borrow" : "Currently unavailable"}
+                  {available
+                    ? "Ready to borrow"
+                    : "Currently unavailable"}
                 </p>
               </div>
             </div>
@@ -291,12 +354,21 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
               <Dialog open={open} onOpenChange={setOpen}>
                 <button
                   type="button"
-                  disabled={!available}
-                  onClick={() => setOpen(true)}
+                  disabled={!available || isPending || isBorrowing}
+                  onClick={() => {
+                    if (!session?.user?.email && !isPending) {
+                      toast.error("Please login to borrow a book.");
+                      return;
+                    }
+
+                    setOpen(true);
+                  }}
                   className="group flex-1 flex items-center justify-center gap-3 bg-[#234B38] hover:bg-[#315E46] disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-7 py-4 rounded-xl font-semibold text-sm transition-all duration-300 shadow-lg shadow-[#234B38]/10 hover:shadow-xl hover:-translate-y-1"
                 >
                   <BookOpen size={19} />
+
                   Borrow This Book
+
                   <ArrowUpRight
                     size={18}
                     className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
@@ -317,7 +389,6 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
                       You can keep this book for 7 days.
                     </DialogDescription>
 
-                    {/* Selected Book Name */}
                     <div className="mt-3 p-4 rounded-xl bg-[#F1F5EF] border border-[#E1E9DF]">
                       <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#8A958B] mb-1">
                         Selected Book
@@ -335,70 +406,65 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
 
                   {/* Borrow Form */}
                   <form onSubmit={handleBorrow}>
-                  <div className="space-y-5 py-4">
-                    {/* Username */}
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="userName"
-                        className="text-sm font-semibold text-[#34483A]"
-                      >
-                        Username
-                      </Label>
+                    <div className="space-y-5 py-4">
+                      {/* Username */}
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="userName"
+                          className="text-sm font-semibold text-[#34483A]"
+                        >
+                          Username
+                        </Label>
 
-                      <Input
-                        id="userName"
-                        name="userName"
-                        placeholder="Enter your username"
-                        defaultValue={session?.user.name}
-                        readOnly
-                        onChange={(e) =>
-                          setBorrowData({
-                            ...borrowData,
-                            userName: e.target.value,
-                          })
-                        }
-                        className="h-11 focus-visible:ring-[#315E46]"
-                      />
+                        <Input
+                          id="userName"
+                          name="userName"
+                          placeholder="Your username"
+                          value={session?.user?.name || ""}
+                          readOnly
+                          className="h-11 focus-visible:ring-[#315E46]"
+                        />
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="userEmail"
+                          className="text-sm font-semibold text-[#34483A]"
+                        >
+                          User Email
+                        </Label>
+
+                        <Input
+                          name="userEmail"
+                          id="userEmail"
+                          type="email"
+                          placeholder="Your email address"
+                          value={session?.user?.email || ""}
+                          readOnly
+                          className="h-11 focus-visible:ring-[#315E46]"
+                        />
+                      </div>
                     </div>
 
-                    {/* Email */}
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="userEmail"
-                        className="text-sm font-semibold text-[#34483A]"
-                      >
-                        User Email
-                      </Label>
-
-                      <Input
-                        name="userEmail"
-                        id="userEmail"
-                        type="email"
-                        placeholder="Enter your email address"
-                        defaultValue={session?.user?.email}
-                        readOnly
-                        onChange={(e) =>
-                          setBorrowData({
-                            ...borrowData,
-                            userEmail: e.target.value,
-                          })
+                    {/* Confirm Button */}
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        disabled={
+                          !available ||
+                          isBorrowing ||
+                          isPending
                         }
-                        className="h-11 focus-visible:ring-[#315E46]"
-                      />
-                    </div>
-                  </div>
+                        className="w-full h-11 bg-[#234B38] hover:bg-[#315E46] text-white rounded-xl"
+                      >
+                        <BookOpen size={17} className="mr-2" />
 
-                  {/* Confirm Button */}
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled = {Number(bookData.totalCopies) < 1}
-                      className="w-full h-11 bg-[#234B38] hover:bg-[#315E46] text-white rounded-xl"
-                    >
-                      <BookOpen size={17} className="mr-2" />
-                      Confirm Borrow
-                    </Button>
-                  </DialogFooter>
+                        {isBorrowing
+                          ? "Processing..."
+                          : "Confirm Borrow"}
+                      </Button>
+                    </DialogFooter>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -453,6 +519,7 @@ const BookDetailsClient = ({ bookData }: BookDetailsClientProps) => {
 
           <div className="flex items-center gap-2 text-xs text-[#607365]">
             <Check size={14} className="text-emerald-600" />
+
             Every book deserves a reader.
           </div>
         </div>

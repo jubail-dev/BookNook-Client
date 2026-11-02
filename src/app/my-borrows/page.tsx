@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -19,6 +18,8 @@ import {
   CheckCircle2,
   BookCheck,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface BorrowedBook {
   _id: string;
@@ -33,6 +34,7 @@ interface BorrowedBook {
 }
 
 const MyBorrowsPage = () => {
+  const router = useRouter();
   const { data: session, isPending } = useSession();
 
   const [borrows, setBorrows] = useState<BorrowedBook[]>([]);
@@ -50,7 +52,7 @@ const MyBorrowsPage = () => {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/bookings/${userEmail}`,
-          { cache: "no-store" }
+          { cache: "no-store" },
         );
 
         if (!response.ok) {
@@ -96,7 +98,7 @@ const MyBorrowsPage = () => {
     returnDate.setHours(0, 0, 0, 0);
 
     const diff = Math.ceil(
-      (returnDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      (returnDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diff < 0) {
@@ -125,11 +127,11 @@ const MyBorrowsPage = () => {
   const filteredBorrows = borrows.filter((book) =>
     (book.title || "Untitled Book")
       .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+      .includes(searchTerm.toLowerCase()),
   );
 
   const overdueCount = borrows.filter(
-    (book) => getBookStatus(book.borrowDurationDate).label === "Overdue"
+    (book) => getBookStatus(book.borrowDurationDate).label === "Overdue",
   ).length;
 
   const activeCount = borrows.length - overdueCount;
@@ -146,24 +148,39 @@ const MyBorrowsPage = () => {
   }
 
   const handleReturnButton = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/bookings/${id}`,
-    {
-      method: "DELETE",
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/bookings/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to return book");
     }
-  );
 
-  const result = await response.json();
+    const result = await response.json();
 
-  if (result.deletedCount > 0) {
-    console.log("Book returned successfully");
+    if (result.deletedCount > 0) {
+      // Remove returned book immediately from UI
+      setBorrows((prevBorrows) =>
+        prevBorrows.filter((book) => book._id !== id)
+      );
+
+      toast.success("Book returned successfully!");
+    } else {
+      toast.error("Book could not be returned.");
+    }
+  } catch (error) {
+    console.error("Return book error:", error);
+    toast.error("Something went wrong while returning the book.");
   }
 };
 
   return (
     <main className="min-h-screen bg-[#F8F7F2] text-[#171717] px-4 sm:px-6 lg:px-8 py-8 md:py-12">
       <div className="max-w-6xl mx-auto">
-
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -185,8 +202,8 @@ const MyBorrowsPage = () => {
               </h1>
 
               <p className="text-gray-400 text-sm mt-3 max-w-md">
-                Keep track of your borrowed books, manage return dates,
-                and enjoy every chapter of your reading journey.
+                Keep track of your borrowed books, manage return dates, and
+                enjoy every chapter of your reading journey.
               </p>
             </div>
 
@@ -234,9 +251,7 @@ const MyBorrowsPage = () => {
                 <h2 className="text-3xl font-bold mt-2 text-[#171717]">
                   {stat.value}
                 </h2>
-                <p className="text-xs text-gray-400 mt-1">
-                  {stat.description}
-                </p>
+                <p className="text-xs text-gray-400 mt-1">{stat.description}</p>
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-[#FFF8DD] flex items-center justify-center">
@@ -248,7 +263,6 @@ const MyBorrowsPage = () => {
 
         {/* Books Section */}
         <section className="bg-white border border-[#EAE7DF] rounded-2xl shadow-sm overflow-hidden">
-
           <div className="p-5 sm:p-6 border-b border-[#F0EEE8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-[#171717] flex items-center gap-2">
@@ -290,9 +304,7 @@ const MyBorrowsPage = () => {
           ) : filteredBorrows.length === 0 ? (
             <div className="py-14 text-center">
               <Search size={28} className="mx-auto text-gray-400 mb-3" />
-              <p className="font-semibold text-gray-700">
-                No books found
-              </p>
+              <p className="font-semibold text-gray-700">No books found</p>
               <p className="text-sm text-gray-400 mt-1">
                 Try searching with another title.
               </p>
@@ -338,7 +350,10 @@ const MyBorrowsPage = () => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <BookOpen size={20} className="text-gray-400" />
+                                    <BookOpen
+                                      size={20}
+                                      className="text-gray-400"
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -356,7 +371,10 @@ const MyBorrowsPage = () => {
 
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <CalendarDays size={14} className="text-gray-400" />
+                              <CalendarDays
+                                size={14}
+                                className="text-gray-400"
+                              />
                               {formatDate(item.borrowDate)}
                             </div>
                           </td>
@@ -368,7 +386,9 @@ const MyBorrowsPage = () => {
                           </td>
 
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold ${status.color}`}>
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold ${status.color}`}
+                            >
                               <StatusIcon size={12} />
                               {status.label}
                             </span>
@@ -378,7 +398,9 @@ const MyBorrowsPage = () => {
                             <button
                               type="button"
                               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#171717] text-white text-xs font-semibold hover:bg-[#EAB308] hover:text-[#171717] transition-all duration-200 cursor-pointer"
-                              onClick={() => {handleReturnButton(item._id)}}
+                              onClick={() => {
+                                handleReturnButton(item._id);
+                              }}
                             >
                               <RotateCcw size={13} />
                               Return Book
@@ -421,7 +443,9 @@ const MyBorrowsPage = () => {
                             {item.title || "Untitled Book"}
                           </h3>
 
-                          <span className={`inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full border text-[10px] font-bold ${status.color}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full border text-[10px] font-bold ${status.color}`}
+                          >
                             <StatusIcon size={11} />
                             {status.label}
                           </span>
