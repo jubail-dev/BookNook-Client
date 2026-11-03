@@ -22,6 +22,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface DeleteBooksDialogProps {
   book: BookItem;
@@ -59,9 +60,12 @@ const DeleteBooksDialog = ({ book }: DeleteBooksDialogProps) => {
       if (!BASE_URL) {
         throw new Error("Server URL is not configured!");
       }
-
+      const token = await getTokenFromClient();
       const response = await fetch(`${BASE_URL}/books/${book._id}`, {
         method: "DELETE",
+        headers: {
+          "authorization": `Bearer ${token}`,
+        },
       });
 
       const result: {

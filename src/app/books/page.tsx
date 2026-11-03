@@ -8,6 +8,8 @@ export const metadata: Metadata = {
 };
 
 const AllBooksPage = async () => {
+  
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books`,
     { cache: "no-store" }

@@ -18,7 +18,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { authClient, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 const BookAddPage = () => {
   const router = useRouter();
@@ -71,13 +72,9 @@ const BookAddPage = () => {
   const form = e.currentTarget;
   const formData = new FormData(form);
 
-  const { data, error } = await authClient.token();
-  const token = data?.token;
+  const token = await getTokenFromClient()
 
-  if (error || !token) {
-    toast.error("Authentication failed. Please login again.");
-    return;
-  }
+  
 
   if (isLoading) return;
 
@@ -89,7 +86,6 @@ const BookAddPage = () => {
 
   try {
     let imageUrl = "";
-
     // Step 1: Upload book cover
     if (bookFormData.image) {
       const imageData = new FormData();
@@ -100,6 +96,9 @@ const BookAddPage = () => {
         `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/upload`,
         {
           method: "POST",
+          headers: {
+            "authorization": `Bearer ${token}`
+          },
           body: imageData,
         },
       );

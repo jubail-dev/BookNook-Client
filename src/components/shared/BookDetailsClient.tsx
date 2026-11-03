@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface BookDetailsClientProps {
   bookData: BookItem;
@@ -88,12 +89,14 @@ const BookDetailsClient = ({
     };
 
     try {
+      const token = await getTokenFromClient();
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/booking`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "authorization": `Bearer ${token}`,
           },
           body: JSON.stringify(bookingData),
         }

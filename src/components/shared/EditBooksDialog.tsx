@@ -29,6 +29,7 @@ import {
   Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 interface EditBooksDialogProps {
   filteredBooks: BookItem[];
@@ -167,7 +168,7 @@ const EditBooksDialog = ({ book }: EditBooksDialogProps) => {
       }
 
       let imageUrl = book.image || "";
-
+      const token = await getTokenFromClient();
       // Step 1: Upload new image if selected
       if (image) {
         const imageData = new FormData();
@@ -178,6 +179,9 @@ const EditBooksDialog = ({ book }: EditBooksDialogProps) => {
           `${BASE_URL}/upload`,
           {
             method: "POST",
+            headers: {
+              "authorization": `Bearer ${token}`
+            },
             body: imageData,
           }
         );
@@ -196,6 +200,8 @@ const EditBooksDialog = ({ book }: EditBooksDialogProps) => {
         imageUrl = uploadResult.imageUrl;
       }
 
+      
+
       // Step 2: Prepare updated book data
       const updatedBook = {
         ...formData,
@@ -210,6 +216,7 @@ const EditBooksDialog = ({ book }: EditBooksDialogProps) => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            "authorization": `Bearer ${token}`
           },
           body: JSON.stringify(updatedBook),
         }

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 
 
 interface BorrowedBook {
@@ -51,9 +52,10 @@ const MyBorrowsPage = () => {
 
     const fetchBorrows = async () => {
       try {
+        const token = await getTokenFromClient();
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/bookings/${userEmail}`,
-          { cache: "no-store" },
+          { cache: "no-store", headers: { "authorization": `Bearer ${token}` } },
         );
 
         if (!response.ok) {
@@ -150,10 +152,14 @@ const MyBorrowsPage = () => {
 
   const handleReturnButton = async (id: string) => {
   try {
+    const token = await getTokenFromClient();
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/book/bookings/${id}`,
       {
         method: "DELETE",
+        headers: {
+          "authorization": `Bearer ${token}`,
+        },
       }
     );
 
@@ -474,7 +480,7 @@ const MyBorrowsPage = () => {
 
                       <button
                         type="button"
-                        onClick={() => console.log("Return book:", item._id)}
+                        onClick={() => handleReturnButton(item._id)}
                         className="w-full mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#171717] text-white py-2.5 text-xs font-semibold hover:bg-[#EAB308] hover:text-[#171717] transition-all cursor-pointer"
                       >
                         <RotateCcw size={14} />

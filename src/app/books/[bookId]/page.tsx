@@ -5,8 +5,7 @@ import BookDetailsClient from "@/components/shared/BookDetailsClient";
 import { BookItem } from "@/types/book.type";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+
 
 export const metadata: Metadata = {
   title: "Book Details",
@@ -20,18 +19,10 @@ const BookDetailsContent = async ({
 }) => {
   const { bookId } = await params;
 
-  const jwtToken = await auth.api.getToken({
-    headers: await headers()
-  })
-
-  console.log(jwtToken?.token);
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books/${bookId}`,
     { 
-      headers:{
-        authorization: `Bearer ${jwtToken?.token}`
-      },
       cache: "no-store" 
     }
   );

@@ -5,14 +5,13 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import {
   BookOpen,
   Library,
   BookCopy,
   Layers3,
   Search,
-  Pencil,
-  Trash2,
   SearchX,
   Sparkles,
   ArrowUpRight,
@@ -56,9 +55,16 @@ useEffect(() => {
 
   const fetchMyBooks = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/my-books/${session.user.email}`
-      );
+      const token = await getTokenFromClient();
+
+const response = await fetch(
+  `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/my-books/${session.user.email}`,
+  {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  }
+);
 
       if (!response.ok) {
         throw new Error("Failed to fetch books");
