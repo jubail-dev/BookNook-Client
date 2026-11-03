@@ -66,91 +66,99 @@ const BookAddPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  const form = e.currentTarget;
+  const formData = new FormData(form);
 
-    if (isLoading) return;
+  const { data, error } = await authClient.token();
+  const token = data?.token;
 
-    setIsLoading(true);
+  if (error || !token) {
+    toast.error("Authentication failed. Please login again.");
+    return;
+  }
 
-    const toastId = toast.loading("Adding your book...", {
-      description: "Please wait while we save your book.",
-    });
+  if (isLoading) return;
 
-    const formData = new FormData(e.currentTarget);
+  setIsLoading(true);
 
-    try {
-      let imageUrl = "";
+  const toastId = toast.loading("Adding your book...", {
+    description: "Please wait while we save your book.",
+  });
 
-      // Step 1: Upload book cover
-      if (bookFormData.image) {
-        const imageData = new FormData();
+  try {
+    let imageUrl = "";
 
-        imageData.append("image", bookFormData.image);
+    // Step 1: Upload book cover
+    if (bookFormData.image) {
+      const imageData = new FormData();
 
-        const uploadResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/upload`,
-          {
-            method: "POST",
-            body: imageData,
-          },
-        );
+      imageData.append("image", bookFormData.image);
 
-        const uploadResult = await uploadResponse.json();
-
-        if (!uploadResponse.ok) {
-          throw new Error(uploadResult.message || "Image upload failed");
-        }
-
-        imageUrl = uploadResult.imageUrl;
-      }
-
-      // Step 2: Prepare book data
-      const bookData = Object.fromEntries(formData.entries());
-
-      bookData.image = imageUrl;
-
-      // Step 3: Save book to MongoDB
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books`,
+      const uploadResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/upload`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bookData),
+          body: imageData,
         },
       );
 
-      const result = await response.json();
+      const uploadResult = await uploadResponse.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || "Book creation failed");
+      if (!uploadResponse.ok) {
+        throw new Error(uploadResult.message || "Image upload failed");
       }
 
-      console.log("Book added successfully:", result);
-
-      // Step 4: Show success toast
-      toast.success("Book added successfully!", {
-        id: toastId,
-        description: "Your new book is now available in the library.",
-      });
-
-      // Step 5: Redirect to My Books
-      router.push("/my-books");
-    } catch (error) {
-      console.error("Error adding book:", error);
-
-      toast.error("Failed to add book!", {
-        id: toastId,
-        description:
-          error instanceof Error ? error.message : "Something went wrong!",
-      });
-
-      setIsLoading(false);
+      imageUrl = uploadResult.imageUrl;
     }
-  };
 
+    // Step 2: Prepare book data
+    const bookData = Object.fromEntries(formData.entries());
+
+    bookData.image = imageUrl;
+
+    // Step 3: Save book to MongoDB
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(bookData),
+      },
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Book creation failed");
+    }
+
+    console.log("Book added successfully:", result);
+
+    // Step 4: Show success toast
+    toast.success("Book added successfully!", {
+      id: toastId,
+      description: "Your new book is now available in the library.",
+    });
+
+    // Step 5: Redirect to My Books
+    router.push("/my-books");
+  } catch (error) {
+    console.error("Error adding book:", error);
+
+    toast.error("Failed to add book!", {
+      id: toastId,
+      description:
+        error instanceof Error ? error.message : "Something went wrong!",
+    });
+
+    setIsLoading(false);
+  }
+};
   const inputClass =
     "w-full h-[46px] rounded-lg border border-[#E7EBE5] bg-[#FAFBF9] px-4 text-[14px] font-medium text-[#263B2E] outline-none transition-all duration-200 placeholder:font-normal placeholder:text-[#A6AEA5] hover:border-[#B9CBB8] focus:border-[#527B59] focus:bg-white focus:ring-[3px] focus:ring-[#527B59]/10";
 
