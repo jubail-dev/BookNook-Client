@@ -20,11 +20,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Add Books",
-};
 
 const BookAddPage = () => {
   const router = useRouter();

@@ -20,12 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signIn, signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { redirect, useRouter } from "next/navigation";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Register",
-};
+import { useRouter } from "next/navigation";
 
 interface FormData {
   name: string;
