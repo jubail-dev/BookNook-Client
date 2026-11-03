@@ -1,7 +1,7 @@
 
+import type { Metadata } from "next";
 import BookCard from "@/components/shared/BookCard";
 import { BookItem } from "@/types/book.type";
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "All Books",

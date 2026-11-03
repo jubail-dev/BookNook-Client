@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Add Books | BookNook",
+  title: "Add Books",
 };
 
-export default function AddBooksLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AddBooksLayout({ children }: LayoutProps<"/books/add">) {
   return <>{children}</>;
 }

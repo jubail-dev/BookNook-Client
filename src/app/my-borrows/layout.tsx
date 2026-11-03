@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "MyBorrows | BookNook",
+  title: "Borrow Books",
 };
 
 export default function MyBorrowsLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: LayoutProps<"/my-borrows">) {
   return <>{children}</>;
 }
