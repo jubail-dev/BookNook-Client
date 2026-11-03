@@ -1,36 +1,249 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+# 📚 BookNook
+
+### Your Personal Reading Space
+
+Discover your next great book.  
+Explore stories, share knowledge, and build your own reading journey.
+
+<br/>
+
+<a href="https://book-nook-client-lilac.vercel.app/">
+  <img src="https://img.shields.io/badge/🌐_Live_Demo-Explore_BookNook-FFB800?style=for-the-badge&labelColor=111827" alt="Live Demo"/>
+</a>
+<a href="https://github.com/jubail-dev/BookNook-Server">
+  <img src="https://img.shields.io/badge/⚙️_Backend-Repository-111827?style=for-the-badge&labelColor=111827" alt="Backend Repository"/>
+</a>
+
+<br/><br/>
+
+<img src="https://img.shields.io/badge/Project-BookNook-FFB800?style=flat-square&labelColor=111827"/>
+<img src="https://img.shields.io/badge/Status-Active-22C55E?style=flat-square&labelColor=111827"/>
+<img src="https://img.shields.io/badge/Platform-Web-3B82F6?style=flat-square&labelColor=111827"/>
+
+<br/><br/>
+
+</div>
+
+---
+
+## 📖 About BookNook
+
+**BookNook** is a modern and elegant book-sharing platform designed for readers who love discovering new stories and exploring the world of literature.
+
+The platform brings together a beautiful reading experience and a simple interface where users can discover books, explore collections, share their favorite reads, and enjoy a growing community of book lovers.
+
+With its warm visual identity, clean layout, and thoughtfully designed sections, BookNook makes discovering your next favorite book a delightful experience.
+
+> Every book is a new beginning.  
+> Find your next story with BookNook.
+
+---
+
+## 🌐 Live Application
+
+| Resource | Link |
+|---|---|
+| 🚀 Live Website | [BookNook Live](https://book-nook-client-lilac.vercel.app/) |
+| ⚙️ Backend API | [BookNook API](https://book-nook-server-bay.vercel.app/) |
+| 💻 Backend Repository | [BookNook Server](https://github.com/jubail-dev/BookNook-Server) |
+
+---
+
+## ✨ Key Features
+
+### 📚 Discover Books
+Explore a curated collection of books across different genres, editions, and interests.
+
+### 🔍 Explore the Collection
+Find interesting books and discover your next favorite story.
+
+### 📖 Book Sharing
+Explore books shared by readers and discover new perspectives through literature.
+
+### 📬 Request to Borrow
+A reader-friendly borrowing experience that helps users connect with books and their owners.
+
+### 🌟 Personal Reading Space
+A modern reading environment designed to make book discovery and exploration enjoyable.
+
+### 🎨 Premium User Interface
+An elegant, responsive, and visually engaging interface featuring beautiful book cards, warm colors, and refined typography.
+
+---
+
+## 🖼️ Project Preview
+
+<div align="center">
+
+<!-- Add your project screenshot inside the repository -->
+
+<img src="./public/booknook-preview.png" alt="BookNook Website Preview" width="100%"/>
+
+<br/>
+
+<em>A beautifully designed space for discovering and sharing books.</em>
+
+</div>
+
+---
+
+## 🛠️ Technologies Used
+
+<div align="center">
+
+<!-- Replace these with your actual project technologies -->
+
+<img src="https://skillicons.dev/icons?i=html,css,js,react,tailwind,git,github,vercel" alt="Technologies" />
+
+</div>
+
+### Frontend
+- Modern component-based UI
+- Responsive web design
+- Interactive user interface
+- Reusable components
+
+### Backend
+- REST API integration
+- Dynamic data handling
+- Server-side application
+
+> Update the technology list according to the actual technologies used in your project.
+
+---
+
+## 🏗️ Project Architecture
+
+```text
+BookNook
+│
+├── Frontend
+│   ├── User Interface
+│   ├── Book Collection
+│   ├── Book Details
+│   └── Reading Experience
+│
+└── Backend
+    ├── REST API
+    ├── Data Management
+    └── Server Application
+```
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to run the project locally.
+
+### 1. Clone the Frontend Repository
+
+```bash
+git clone YOUR_FRONTEND_REPOSITORY_URL
+```
+
+### 2. Navigate to the Project Directory
+
+```bash
+cd BookNook
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Start the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:5173
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> Make sure the backend API is configured correctly before running the application.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔗 API Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+BookNook uses a backend API to manage application data.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Backend API URL:**
 
-## Deploy on Vercel
+```text
+https://book-nook-server-bay.vercel.app/
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+If your project uses environment variables, configure the API URL in your environment file.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Example:
+
+```env
+VITE_API_URL=https://book-nook-server-bay.vercel.app
+```
+
+---
+
+## 🎯 Project Goals
+
+- Build a modern and user-friendly book-sharing platform.
+- Create a visually appealing and responsive interface.
+- Improve frontend development skills through a real-world project.
+- Practice API integration and dynamic data handling.
+- Develop a better understanding of full-stack web application architecture.
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Advanced book search and filtering
+- [ ] Personalized reading recommendations
+- [ ] User reviews and ratings
+- [ ] Reading progress tracking
+- [ ] Wishlist and favorite books
+- [ ] Enhanced user dashboard
+- [ ] Improved mobile experience
+
+---
+
+## 👨‍💻 Developer
+
+<div align="center">
+
+### MD. Jubail Miah
+
+**Aspiring Web Developer | Passionate About Building Modern Web Experiences**
+
+I enjoy building beautiful, interactive, and user-friendly web applications while continuously learning and improving my development skills.
+
+<br/>
+
+<a href="https://github.com/jubail-dev">
+  <img src="https://img.shields.io/badge/GitHub-jubail--dev-181717?style=for-the-badge&logo=github" alt="GitHub"/>
+</a>
+
+</div>
+
+---
+
+<div align="center">
+
+### 📚 Discover. Share. Read. Repeat.
+
+**Thank you for exploring BookNook!**
+
+<sub>Made with passion for readers and book lovers.</sub>
+
+<br/><br/>
+
+<img src="https://img.shields.io/badge/BookNook-Your_Personal_Reading_Space-FFB800?style=for-the-badge&labelColor=111827" alt="BookNook"/>
+
+</div>
