@@ -20,6 +20,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Borrows",
+};
 
 interface BorrowedBook {
   _id: string;

@@ -23,6 +23,11 @@ import {
 import { BookItem } from "@/types/book.type";
 import EditBooksDialog from "@/components/shared/EditBooksDialog";
 import DeleteBooksDialog from "@/components/shared/DeleteBookDialog";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Books",
+};
 
 const containerVariants = {
   hidden: {},

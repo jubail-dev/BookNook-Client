@@ -4,6 +4,11 @@ import BookDetailsClient from "@/components/shared/BookDetailsClient";
 import { BookItem } from "@/types/book.type";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Book Details",
+};
 
 const BookDetailsContent = async ({
   params,

@@ -21,6 +21,11 @@ import { Button } from "@/components/ui/button";
 import { signIn, signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { redirect, useRouter } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Register",
+};
 
 interface FormData {
   name: string;
@@ -54,6 +59,7 @@ const SignUpPage = () => {
     name: formData.name,
     email: formData.email,
     password: formData.password,
+    image: formData.photoURL || undefined,
   });
 
   if (error) {
