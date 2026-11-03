@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -19,13 +18,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 
 const BookAddPage = () => {
   const router = useRouter();
 
-  const {data:session, isPending} = useSession()
-
+  const { data: session, isPending } = useSession();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +43,7 @@ const BookAddPage = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, type } = e.target;
 
@@ -69,6 +67,7 @@ const BookAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
 
     if (isLoading) return;
 
@@ -94,15 +93,13 @@ const BookAddPage = () => {
           {
             method: "POST",
             body: imageData,
-          }
+          },
         );
 
         const uploadResult = await uploadResponse.json();
 
         if (!uploadResponse.ok) {
-          throw new Error(
-            uploadResult.message || "Image upload failed"
-          );
+          throw new Error(uploadResult.message || "Image upload failed");
         }
 
         imageUrl = uploadResult.imageUrl;
@@ -122,15 +119,13 @@ const BookAddPage = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(bookData),
-        }
+        },
       );
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "Book creation failed"
-        );
+        throw new Error(result.message || "Book creation failed");
       }
 
       console.log("Book added successfully:", result);
@@ -149,9 +144,7 @@ const BookAddPage = () => {
       toast.error("Failed to add book!", {
         id: toastId,
         description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong!",
+          error instanceof Error ? error.message : "Something went wrong!",
       });
 
       setIsLoading(false);
@@ -167,7 +160,6 @@ const BookAddPage = () => {
   return (
     <main className="min-h-screen bg-[#F6F8F4] px-4 py-5 sm:px-7 lg:px-10 lg:py-7">
       <div className="book-page-enter mx-auto max-w-[1050px]">
-
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -197,12 +189,10 @@ const BookAddPage = () => {
 
         {/* Main Form */}
         <div className="overflow-hidden rounded-[18px] border border-[#E6EBE3] bg-white shadow-[0_12px_40px_rgba(36,57,39,0.045)]">
-
           {/* Top Accent */}
           <div className="h-[3px] w-full bg-gradient-to-r from-[#244A32] via-[#779B73] to-[#D6E2D1]" />
 
           <form onSubmit={handleSubmit} className="p-5 sm:p-7 lg:p-8">
-
             {/* Form Heading */}
             <div className="mb-6 flex items-center justify-between border-b border-[#EEF1EB] pb-5">
               <div className="flex items-center gap-3">
@@ -227,10 +217,8 @@ const BookAddPage = () => {
 
             {/* Main Grid */}
             <div className="grid gap-x-8 gap-y-6 lg:grid-cols-[1fr_280px]">
-
               {/* Left Column */}
               <div className="space-y-6">
-
                 {/* Basic Details */}
                 <section>
                   <div className="mb-4 flex items-center gap-2">
@@ -241,7 +229,6 @@ const BookAddPage = () => {
                   </div>
 
                   <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-
                     {/* Book Title */}
                     <div className="field-animate sm:col-span-2">
                       <label className={labelClass}>
@@ -353,7 +340,6 @@ const BookAddPage = () => {
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-
                     {/* User Name */}
                     <div>
                       <label className={labelClass}>
@@ -409,7 +395,6 @@ const BookAddPage = () => {
 
               {/* Right Column */}
               <div className="space-y-5">
-
                 {/* Cover Upload */}
                 <section>
                   <div className="mb-4 flex items-center gap-2">
@@ -420,7 +405,6 @@ const BookAddPage = () => {
                   </div>
 
                   <label className="cover-float group relative flex h-[180px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#C9D6C7] bg-[#F7F9F5] transition-all duration-300 hover:border-[#739675] hover:bg-[#EFF5EC]">
-
                     {preview ? (
                       <>
                         <img
@@ -503,7 +487,6 @@ const BookAddPage = () => {
 
             {/* Bottom Actions */}
             <div className="mt-7 flex flex-col-reverse items-center justify-between gap-4 border-t border-[#EDF0EA] pt-5 sm:flex-row">
-
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={17} className="text-[#719477}" />
 
@@ -541,15 +524,12 @@ const BookAddPage = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                       />
                     </svg>
-
                     Adding book...
                   </>
                 ) : (
                   <>
                     <Plus size={17} />
-
                     Add book to library
-
                     <ArrowUpRight
                       size={16}
                       className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

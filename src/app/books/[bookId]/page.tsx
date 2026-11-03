@@ -28,7 +28,12 @@ const BookDetailsContent = async ({
 
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/books/${bookId}`,
-    { cache: "no-store" }
+    { 
+      headers:{
+        authorization: `Bearer ${jwtToken?.token}`
+      },
+      cache: "no-store" 
+    }
   );
 
   if (!response.ok) {
