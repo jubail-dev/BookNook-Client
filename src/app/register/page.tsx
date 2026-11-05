@@ -31,7 +31,9 @@ interface FormData {
 
 const SignUpPage = () => {
   const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -40,6 +42,15 @@ const SignUpPage = () => {
     password: "",
   });
 
+  // Password validation
+  const passwordRequirements = {
+    uppercase: /[A-Z]/.test(formData.password),
+    lowercase: /[a-z]/.test(formData.password),
+    minLength: formData.password.length >= 6,
+  };
+
+  const isPasswordValid = Object.values(passwordRequirements).every(Boolean);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -47,42 +58,72 @@ const SignUpPage = () => {
     });
   };
 
+  // Email signup
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const { data: resData, error } = await signUp.email({
-    name: formData.name,
-    email: formData.email,
-    password: formData.password,
-    image: formData.photoURL || undefined,
-  });
+    if (!isPasswordValid) {
+      toast.error("Please meet all password requirements.");
+      return;
+    }
 
-  if (error) {
-    toast.error(error.message || "Registration failed!");
-    return;
-  }
+    setIsLoading(true);
 
-  if (resData?.user) {
-    toast.success("Successfully registered! Please login.");
+    try {
+      const { data: resData, error } = await signUp.email({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        image: formData.photoURL || undefined,
+      });
 
-    router.push("/login");
-    router.refresh();
-  }
-};
+      if (error) {
+        toast.error(error.message || "Registration failed!");
+        return;
+      }
 
- const handleGoogleSignIn = async () =>{
-    const data = await signIn.social({
-      provider: "google"
-    })
-    console.log(data);
-  }
+      if (resData?.user) {
+        toast.success("Successfully registered! Please login.");
 
-  const handleGithubSignIn = async () =>{
-    const data = await signIn.social({
-      provider: "github"
-    })
-    console.log(data);
-  }
+        router.push("/login");
+        router.refresh();
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Google signup
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+      });
+
+      if (error) {
+        toast.error(error.message || "Google sign in failed!");
+      }
+    } catch {
+      toast.error("Google sign in failed!");
+    }
+  };
+
+  // GitHub signup
+  const handleGithubSignIn = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+      });
+
+      if (error) {
+        toast.error(error.message || "GitHub sign in failed!");
+      }
+    } catch {
+      toast.error("GitHub sign in failed!");
+    }
+  };
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f7f3] p-3 sm:p-5 lg:flex lg:min-h-screen lg:items-center lg:justify-center">
@@ -271,7 +312,11 @@ const SignUpPage = () => {
                 variant="outline"
                 className="h-11 rounded-xl border-[#e9e5dc] text-sm font-semibold text-[#39352d] hover:bg-[#faf8f2]"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                >
                   <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                 </svg>
                 GitHub
@@ -402,7 +447,7 @@ const SignUpPage = () => {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    minLength={8}
+                    minLength={6}
                     autoComplete="new-password"
                     value={formData.password}
                     onChange={handleChange}
@@ -420,22 +465,65 @@ const SignUpPage = () => {
                   </button>
                 </div>
 
-                <p className="text-[10px] text-[#aaa397]">
-                  Use at least 8 characters for your password.
-                </p>
+                {/* Live Password Requirements */}
+
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] font-semibold text-[#777164]">
+                    Password must contain:
+                  </p>
+
+                  {[
+                    {
+                      label: "At least one uppercase letter (A-Z)",
+                      valid: passwordRequirements.uppercase,
+                    },
+                    {
+                      label: "At least one lowercase letter (a-z)",
+                      valid: passwordRequirements.lowercase,
+                    },
+                    {
+                      label: "At least 6 characters",
+                      valid: passwordRequirements.minLength,
+                    },
+                  ].map((requirement) => (
+                    <div
+                      key={requirement.label}
+                      className={`flex items-center gap-2 text-[11px] transition-colors ${
+                        requirement.valid
+                          ? "text-green-600"
+                          : "text-[#aaa397]"
+                      }`}
+                    >
+                      <CheckCircle2
+                        size={14}
+                        className={
+                          requirement.valid
+                            ? "text-green-600"
+                            : "text-[#c8c2b7]"
+                        }
+                      />
+
+                      {requirement.label}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Submit */}
 
               <Button
                 type="submit"
-                className="group mt-2 h-12 w-full rounded-xl bg-[#e8a817] text-sm font-bold text-white shadow-lg shadow-[#e8a817]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#d69a15] hover:shadow-xl"
+                disabled={isLoading}
+                className="group mt-2 h-12 w-full rounded-xl bg-[#e8a817] text-sm font-bold text-white shadow-lg shadow-[#e8a817]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#d69a15] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create Account
-                <ArrowRight
-                  size={17}
-                  className="ml-2 transition-transform group-hover:translate-x-1"
-                />
+                {isLoading ? "Creating Account..." : "Create Account"}
+
+                {!isLoading && (
+                  <ArrowRight
+                    size={17}
+                    className="ml-2 transition-transform group-hover:translate-x-1"
+                  />
+                )}
               </Button>
             </form>
 

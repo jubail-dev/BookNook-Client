@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { Suspense, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,11 +18,11 @@ import {
   ChevronDown,
   Library,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import { toast } from "sonner";
 
-const NavbarContent = () => {
+const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -33,12 +34,10 @@ const NavbarContent = () => {
 
   const { data: session, isPending } = useSession();
 
-  // ইউজার Login থাকলে (Session Active) তবেই Authentic State True হবে।
-  // শুধু Sign Up / Register করার সাথে সাথে Session তৈরি না হলে সে Protected Route দেখতে পাবে না।
   const user = session?.user;
   const isLoggedIn = !!user;
 
-  // Click outside listener for dropdown
+  // Click outside listener
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -48,11 +47,15 @@ const NavbarContent = () => {
         setProfileOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  // Navigation Links Definition
+  // Navigation Links
   const navLinks = [
     { name: "Home", href: "/", icon: Home, public: true },
     { name: "All Books", href: "/books", icon: BookOpen, public: true },
@@ -61,13 +64,15 @@ const NavbarContent = () => {
     { name: "My Borrows", href: "/my-borrows", icon: Repeat, public: false },
   ];
 
-  // Public/Private Filtered Links
+  // Filter Navigation Links
   const visibleLinks = navLinks.filter(
-    (link) => link.public || isLoggedIn
+    (link) => link.public || (isLoggedIn && !isPending),
   );
 
+  // Active Route
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+
     return (
       pathname === href ||
       (pathname.startsWith(`${href}/`) && href !== "/books")
@@ -78,54 +83,39 @@ const NavbarContent = () => {
 
   // Sign Out Handler
   const handleSignOut = async () => {
-    try {
-      setIsSigningOut(true);
-      await signOut();
+  try {
+    setIsSigningOut(true);
 
-      setProfileOpen(false);
-      setMobileMenuOpen(false);
+    await signOut();
 
-      router.push("/login");
-      router.refresh();
-    } catch (error) {
-      console.error("Sign out failed:", error);
-    } finally {
-      setIsSigningOut(false);
-    }
-  };
+    toast.success("Logged out successfully!", {
+      description: "See you again soon. Happy reading!",
+      duration: 3000,
+    });
 
-  // Loading Skeleton State
-  if (isPending) {
-    return (
-      <nav className="sticky top-0 z-50 w-full border-b border-rose-100/60 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 animate-pulse rounded-2xl bg-amber-200/60" />
-            <div className="h-7 w-32 animate-pulse rounded-xl bg-zinc-200/60" />
-          </div>
-          <div className="hidden items-center gap-2 lg:flex">
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="h-10 w-24 animate-pulse rounded-xl bg-zinc-100"
-              />
-            ))}
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 animate-pulse rounded-full bg-amber-100" />
-          </div>
-        </div>
-      </nav>
-    );
+    setProfileOpen(false);
+    setMobileMenuOpen(false);
+
+    router.push("/login");
+    router.refresh();
+  } catch (error) {
+    console.error("Sign out failed:", error);
+
+    toast.error("Logout failed!", {
+      description: "Something went wrong. Please try again.",
+      duration: 3000,
+    });
+  } finally {
+    setIsSigningOut(false);
   }
+};
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-rose-100/80 bg-white/85 shadow-[0_4px_30px_rgba(0,0,0,0.03)] backdrop-blur-2xl transition-all duration-300">
-      {/* Background Subtle Gradient Glow */}
+      {/* Background Gradient Glow */}
       <div className="pointer-events-none absolute inset-x-0 -top-12 -z-10 mx-auto h-28 w-2/3 rounded-full bg-gradient-to-r from-amber-400/20 via-rose-300/20 to-amber-400/20 blur-3xl" />
 
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3.5 sm:px-8 lg:px-10">
-        
         {/* Brand Logo */}
         <Link
           href="/"
@@ -133,10 +123,15 @@ const NavbarContent = () => {
           className="group relative flex shrink-0 items-center gap-3 transition-all duration-300 active:scale-95"
         >
           <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-300 text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-105 group-hover:shadow-amber-500/35">
-            <BookOpen size={22} strokeWidth={2.5} className="transition-transform duration-300 group-hover:scale-110" />
+            <BookOpen
+              size={22}
+              strokeWidth={2.5}
+              className="transition-transform duration-300 group-hover:scale-110"
+            />
+
             <span className="absolute -right-1 -top-1 flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
             </span>
           </div>
 
@@ -148,7 +143,7 @@ const NavbarContent = () => {
           </span>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation */}
         <div className="hidden items-center gap-1.5 rounded-2xl border border-zinc-200/50 bg-zinc-50/60 p-1.5 backdrop-blur-sm lg:flex">
           {visibleLinks.map((link) => {
             const Icon = link.icon;
@@ -164,16 +159,24 @@ const NavbarContent = () => {
                     : "text-zinc-600 hover:bg-rose-100/50 hover:text-amber-700"
                 }`}
               >
-                <Icon size={17} className={`transition-transform duration-300 ${active ? "scale-110" : ""}`} />
+                <Icon
+                  size={17}
+                  className={`transition-transform duration-300 ${
+                    active ? "scale-110" : ""
+                  }`}
+                />
                 {link.name}
               </Link>
             );
           })}
         </div>
 
-        {/* Desktop Auth Section */}
+        {/* Desktop Authentication Section */}
         <div className="hidden items-center gap-3 lg:flex">
-          {!isLoggedIn ? (
+          {isPending ? (
+            // Small Auth Loading Placeholder
+            <div className="h-10 w-28 animate-pulse rounded-xl bg-zinc-100" />
+          ) : !isLoggedIn ? (
             <div className="flex items-center gap-3">
               <Link
                 href="/login"
@@ -187,12 +190,15 @@ const NavbarContent = () => {
                 href="/register"
                 className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-5 py-2.5 text-sm font-extrabold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:brightness-105 hover:shadow-amber-500/35 active:scale-95"
               >
-                <UserPlus size={17} className="transition-transform duration-300 group-hover:rotate-12" />
+                <UserPlus
+                  size={17}
+                  className="transition-transform duration-300 group-hover:rotate-12"
+                />
                 Register
               </Link>
             </div>
           ) : (
-            /* User Profile Dropdown */
+            // User Profile Dropdown
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
@@ -220,8 +226,9 @@ const NavbarContent = () => {
                   <p className="max-w-[110px] truncate text-xs font-bold text-zinc-900">
                     {user?.name || "User"}
                   </p>
+
                   <p className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                     Active Member
                   </p>
                 </div>
@@ -234,10 +241,10 @@ const NavbarContent = () => {
                 />
               </button>
 
-              {/* Profile Card Menu */}
+              {/* Profile Dropdown */}
               {profileOpen && (
                 <div className="absolute right-0 top-[calc(100%+12px)] z-[60] w-72 origin-top-right overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-2xl shadow-zinc-900/10 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="bg-gradient-to-br from-amber-100/60 via-amber-50/30 to-rose-50/40 p-4 border-b border-zinc-100">
+                  <div className="border-b border-zinc-100 bg-gradient-to-br from-amber-100/60 via-amber-50/30 to-rose-50/40 p-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-amber-400 bg-amber-200 font-extrabold text-zinc-900 shadow-sm">
                         {user?.image ? (
@@ -255,6 +262,7 @@ const NavbarContent = () => {
                         <h3 className="truncate text-sm font-black text-zinc-900">
                           {user?.name || "User"}
                         </h3>
+
                         <p className="truncate text-xs font-medium text-zinc-500">
                           {user?.email}
                         </p>
@@ -293,6 +301,7 @@ const NavbarContent = () => {
                       ) : (
                         <LogOut size={18} />
                       )}
+
                       {isSigningOut ? "Signing Out..." : "Sign Out"}
                     </button>
                   </div>
@@ -302,7 +311,7 @@ const NavbarContent = () => {
           )}
         </div>
 
-        {/* Mobile Toggle Button */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
@@ -313,7 +322,7 @@ const NavbarContent = () => {
         </button>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="border-t border-rose-100 bg-white/95 px-5 py-6 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300 lg:hidden">
           <div className="flex flex-col gap-2">
@@ -338,7 +347,12 @@ const NavbarContent = () => {
               );
             })}
 
-            {!isLoggedIn ? (
+            {/* Mobile Authentication */}
+            {isPending ? (
+              <div className="mt-4 flex justify-center border-t border-zinc-100 pt-4">
+                <Loader2 className="animate-spin text-amber-500" size={22} />
+              </div>
+            ) : !isLoggedIn ? (
               <div className="mt-4 grid grid-cols-2 gap-3 border-t border-zinc-100 pt-4">
                 <Link
                   href="/login"
@@ -377,6 +391,7 @@ const NavbarContent = () => {
                     <p className="truncate text-sm font-black text-zinc-900">
                       {user?.name || "User"}
                     </p>
+
                     <p className="truncate text-xs font-medium text-zinc-500">
                       {user?.email}
                     </p>
@@ -411,6 +426,7 @@ const NavbarContent = () => {
                   ) : (
                     <LogOut size={18} />
                   )}
+
                   {isSigningOut ? "Signing Out..." : "Sign Out"}
                 </button>
               </div>
@@ -419,18 +435,6 @@ const NavbarContent = () => {
         </div>
       )}
     </nav>
-  );
-};
-
-const Navbar = () => {
-  return (
-    <Suspense
-      fallback={
-        <nav className="sticky top-0 z-50 h-20 w-full border-b border-rose-100 bg-white/80 backdrop-blur-md" />
-      }
-    >
-      <NavbarContent />
-    </Suspense>
   );
 };
 

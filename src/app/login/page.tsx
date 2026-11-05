@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -19,8 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { signIn } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
-
 
 interface LoginFormData {
   email: string;
@@ -28,8 +26,26 @@ interface LoginFormData {
 }
 
 const LoginPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const callbackUrl = searchParams.get("callbackUrl");
+
+  const getRedirectUrl = () => {
+    if (
+      callbackUrl &&
+      callbackUrl.startsWith("/") &&
+      !callbackUrl.startsWith("//")
+    ) {
+      return callbackUrl;
+    }
+
+    return "/";
+  };
+
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -43,59 +59,98 @@ const LoginPage = () => {
     });
   };
 
+  // Email & Password Login
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget)
-    const data = Object.fromEntries(formData.entries())
 
-    const {data:resData, error} = await signIn.email({
-        email: data.email as string,
-        password: data.password as string,
-    })
+    if (isLoading) return;
 
-    if(resData?.user) {
-        toast.success("Login successful! Redirecting...");
-        redirect("/");
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await signIn.email({
+        email: formData.email.trim(),
+        password: formData.password,
+        rememberMe,
+      });
+
+      if (error) {
+        toast.error(
+          error.message || "Invalid email or password. Please try again.",
+        );
+        return;
+      }
+
+      if (data?.user) {
+        toast.success("Login successful! Welcome back.");
+
+        window.location.href = getRedirectUrl();
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
     }
-   
   };
 
-  const handleGoogleSignIn = async () =>{
-    const data = await signIn.social({
-      provider: "google"
-    })
-    console.log(data);
-  }
+  // Google Login
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: getRedirectUrl(),
+      });
 
-  const handleGithubSignIn = async () =>{
-    const data = await signIn.social({
-      provider: "github"
-    })
-    console.log(data);
-  }
+      if (error) {
+        toast.error(error.message || "Google login failed.");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Unable to login with Google. Please try again.");
+    }
+  };
+
+  // GitHub Login
+  const handleGithubSignIn = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+        callbackURL: getRedirectUrl(),
+      });
+
+      if (error) {
+        toast.error(error.message || "GitHub login failed.");
+      }
+    } catch (error) {
+      console.error("GitHub login error:", error);
+      toast.error("Unable to login with GitHub. Please try again.");
+    }
+  };
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f7f3] p-3 sm:p-5 lg:flex lg:items-center lg:justify-center">
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="mx-auto grid w-full max-w-[1150px] overflow-hidden rounded-[28px] border border-[#ebe7dd] bg-white shadow-[0_25px_80px_rgba(40,35,20,0.09)] lg:min-h-[680px] lg:grid-cols-[0.88fr_1.12fr]"
       >
-
         {/* LEFT BRAND SECTION */}
 
         <section className="relative hidden overflow-hidden bg-[#282d25] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
-
           <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full border border-white/10" />
           <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full border border-white/10" />
           <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#d6a64a]/10 blur-3xl" />
 
-          {/* Brand */}
-
           <div className="relative z-10">
-
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e8ad38] text-[#282d25]">
                 <BookOpen size={25} />
@@ -107,7 +162,6 @@ const LoginPage = () => {
             </Link>
 
             <div className="mt-20">
-
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[10px] font-bold tracking-[2px] text-[#e8bd6c]">
                 <Sparkles size={13} />
                 WELCOME BACK
@@ -124,11 +178,10 @@ const LoginPage = () => {
               </h1>
 
               <p className="mt-6 max-w-sm text-sm leading-7 text-white/55">
-                Welcome back to your personal reading space.
-                Continue exploring amazing stories and discover
-                something new every day with BookNook.
+                Welcome back to your personal reading space. Continue exploring
+                amazing stories and discover something new every day with
+                BookNook.
               </p>
-
             </div>
           </div>
 
@@ -140,7 +193,6 @@ const LoginPage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative z-10 flex h-44 items-center justify-center"
           >
-
             <div className="absolute h-44 w-44 rounded-full border border-[#e8ad38]/20" />
             <div className="absolute h-36 w-36 rounded-full bg-[#e8ad38]/10 blur-2xl" />
 
@@ -149,7 +201,6 @@ const LoginPage = () => {
               transition={{ duration: 4, repeat: Infinity }}
               className="relative flex items-end gap-1"
             >
-
               <div className="flex h-32 w-[68px] -rotate-12 flex-col items-center justify-between rounded-md bg-[#49614a] p-3 shadow-xl">
                 <span className="text-[8px] tracking-widest text-white">
                   CLASSIC
@@ -179,14 +230,12 @@ const LoginPage = () => {
                 <Sparkles size={24} className="text-[#f5dfb5]" />
                 <span className="text-[8px] text-white">IMAGINE</span>
               </div>
-
             </motion.div>
           </motion.div>
 
           {/* Bottom */}
 
           <div className="relative z-10 border-t border-white/10 pt-6">
-
             <div className="flex items-center gap-3 text-sm text-white/65">
               <CheckCircle2 size={17} className="text-[#e8ad38]" />
               Your next chapter is waiting for you.
@@ -195,22 +244,18 @@ const LoginPage = () => {
             <p className="mt-5 text-xs text-white/30">
               © 2026 BookNook. Made for the love of reading.
             </p>
-
           </div>
-
         </section>
 
         {/* RIGHT LOGIN SECTION */}
 
         <section className="flex items-center justify-center px-5 py-10 sm:px-10 lg:px-12 xl:px-16">
-
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="w-full max-w-[430px]"
           >
-
             {/* Mobile Brand */}
 
             <Link
@@ -229,7 +274,6 @@ const LoginPage = () => {
             {/* Heading */}
 
             <div className="mb-7">
-
               <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff4dc] text-[#d69a15]">
                 <UserRound size={22} />
               </div>
@@ -241,20 +285,17 @@ const LoginPage = () => {
               <p className="mt-2 text-sm text-[#969185]">
                 Sign in to continue your reading journey.
               </p>
-
             </div>
 
             {/* Social Login */}
 
             <div className="grid grid-cols-2 gap-3">
-
               <Button
                 onClick={handleGoogleSignIn}
                 type="button"
                 variant="outline"
                 className="h-11 rounded-xl border-[#e9e5dc] text-sm font-semibold text-[#39352d] hover:bg-[#faf8f2]"
               >
-
                 <svg viewBox="0 0 24 24" className="h-5 w-5">
                   <path
                     fill="#4285F4"
@@ -273,7 +314,6 @@ const LoginPage = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-
                 Google
               </Button>
 
@@ -283,14 +323,20 @@ const LoginPage = () => {
                 variant="outline"
                 className="h-11 rounded-xl border-[#e9e5dc] text-sm font-semibold text-[#39352d] hover:bg-[#faf8f2]"
               >
-
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                  />
                 </svg>
-
                 GitHub
               </Button>
-
             </div>
 
             {/* Divider */}
@@ -306,11 +352,9 @@ const LoginPage = () => {
             {/* Login Form */}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-
               {/* Email */}
 
               <div className="space-y-1.5">
-
                 <label
                   htmlFor="email"
                   className="text-xs font-semibold text-[#49453c]"
@@ -319,7 +363,6 @@ const LoginPage = () => {
                 </label>
 
                 <div className="group relative">
-
                   <Mail
                     size={17}
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#aaa397] group-focus-within:text-[#d69a15]"
@@ -336,16 +379,13 @@ const LoginPage = () => {
                     placeholder="name@example.com"
                     className="h-12 w-full rounded-xl border border-[#e9e5dc] bg-[#fdfcf9] pl-10 pr-4 text-sm text-[#39352d] outline-none transition-all placeholder:text-[#b3ada2] focus:border-[#e3a923] focus:bg-white focus:ring-4 focus:ring-[#e3a923]/10"
                   />
-
                 </div>
               </div>
 
               {/* Password */}
 
               <div className="space-y-1.5">
-
                 <div className="flex items-center justify-between">
-
                   <label
                     htmlFor="password"
                     className="text-xs font-semibold text-[#49453c]"
@@ -359,11 +399,9 @@ const LoginPage = () => {
                   >
                     Forgot password?
                   </Link>
-
                 </div>
 
                 <div className="group relative">
-
                   <LockKeyhole
                     size={17}
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#aaa397] group-focus-within:text-[#d69a15]"
@@ -383,20 +421,20 @@ const LoginPage = () => {
 
                   <button
                     type="button"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#aaa397] transition-colors hover:text-[#d69a15]"
                   >
                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
-
                 </div>
               </div>
 
               {/* Remember Me */}
 
               <div className="flex items-center gap-2 pt-1">
-
                 <input
                   id="rememberMe"
                   type="checkbox"
@@ -411,32 +449,31 @@ const LoginPage = () => {
                 >
                   Remember me
                 </label>
-
               </div>
 
               {/* Submit */}
 
               <Button
                 type="submit"
-                className="group mt-2 h-12 w-full rounded-xl bg-[#e8a817] text-sm font-bold text-white shadow-lg shadow-[#e8a817]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#d69a15] hover:shadow-xl"
+                disabled={isLoading}
+                className="group mt-2 h-12 w-full rounded-xl bg-[#e8a817] text-sm font-bold text-white shadow-lg shadow-[#e8a817]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#d69a15] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Sign In
+                {isLoading ? "Signing in..." : "Sign In"}
 
-                <ArrowRight
-                  size={17}
-                  className="ml-2 transition-transform group-hover:translate-x-1"
-                />
+                {!isLoading && (
+                  <ArrowRight
+                    size={17}
+                    className="ml-2 transition-transform group-hover:translate-x-1"
+                  />
+                )}
               </Button>
-
             </form>
 
             {/* Footer */}
 
             <div className="mt-7 border-t border-[#eeeae2] pt-5 text-center">
-
               <p className="text-xs text-[#898276]">
                 Don&apos;t have an account?{" "}
-
                 <Link
                   href="/register"
                   className="font-bold text-[#c28a16] hover:text-[#a8740e]"
@@ -447,23 +484,18 @@ const LoginPage = () => {
 
               <p className="mt-5 text-[10px] leading-5 text-[#aaa397]">
                 By signing in, you agree to our{" "}
-
                 <Link href="/terms" className="font-semibold underline">
                   Terms
                 </Link>{" "}
-
                 and{" "}
-
                 <Link href="/privacy" className="font-semibold underline">
                   Privacy Policy
-                </Link>.
+                </Link>
+                .
               </p>
-
             </div>
-
           </motion.div>
         </section>
-
       </motion.div>
     </main>
   );
