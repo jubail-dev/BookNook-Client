@@ -3,7 +3,7 @@ export interface BookItem {
   title: string;
   author: string;
   category: string;
-  totalCopies: string;
+  totalCopies: number;
   userName: string;
   userEmail: string;
   image: string;

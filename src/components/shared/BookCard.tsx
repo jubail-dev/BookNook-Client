@@ -30,12 +30,28 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         </div>
 
         {/* Availability */}
-        <div className="absolute bottom-5 right-5 flex items-center gap-1.5 rounded-full border border-emerald-100 bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-700">
-            Available
-          </span>
-        </div>
+        
+<div
+  className={`absolute bottom-5 right-5 flex items-center gap-1.5 rounded-full border px-3 py-1.5 shadow-sm backdrop-blur-md ${
+    book.totalCopies > 0
+      ? "border-emerald-100 bg-white/95"
+      : "border-red-100 bg-white/95"
+  }`}
+>
+  <span
+    className={`h-1.5 w-1.5 rounded-full ${
+      book.totalCopies > 0 ? "bg-emerald-500" : "bg-red-500"
+    }`}
+  />
+
+  <span
+    className={`text-[9px] font-bold uppercase tracking-wider ${
+      book.totalCopies > 0 ? "text-emerald-700" : "text-red-700"
+    }`}
+  >
+    {book.totalCopies > 0 ? "Available" : "Unavailable"}
+  </span>
+</div>
       </div>
 
       {/* Book Information */}
